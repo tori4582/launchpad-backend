@@ -73,6 +73,7 @@ public class AccountService {
 
         reqEntity.setIsMale((Boolean) getOrDefault(reqEntity.getIsMale(), true));
         reqEntity.setAccountRole((AccountRoleEnum) getOrDefault(reqEntity.getAccountRole(), AccountRoleEnum.JOB_SEEKER));
+        reqEntity.setAssociatedProviders(new LinkedHashMap<>());
 
         Account persistedAccount = accountRepository.save(reqEntity);
         persistedAccount.getAssociatedProviders().put(AccountProviderEnum.SELF_PROVIDED, persistedAccount.getId());
@@ -157,7 +158,7 @@ public class AccountService {
         Account preparedProduct = ofNullable(this.searchAccountByIdentity(identity))
                 .map(loadedEntity -> {
                     loadedEntity.setUsername(reqEntity.getUsername());
-                    loadedEntity.setDisplayName(reqEntity.getDisplayName());
+                        loadedEntity.setDisplayName(reqEntity.getDisplayName());
                     loadedEntity.setIsMale((Boolean) getOrDefault(reqEntity.getIsMale(), true));
                     loadedEntity.setEmail(reqEntity.getEmail());
                     loadedEntity.setPhoneNumber(reqEntity.getPhoneNumber());

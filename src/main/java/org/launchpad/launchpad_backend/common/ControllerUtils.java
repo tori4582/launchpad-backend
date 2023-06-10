@@ -13,7 +13,7 @@ import static org.launchpad.launchpad_backend.common.ExceptionLogger.logInvalidA
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class ControllerUtils {
 
-    private static final Map<Class<?>, ?> exceptionalResponseMappings = Map.of(
+    private static final Map<Class<? extends Exception>, ? extends ResponseEntity.HeadersBuilder<?>> exceptionalResponseMappings = Map.of(
             NoSuchElementException.class, ResponseEntity.notFound(),
             NullPointerException.class, ResponseEntity.notFound(),
             IllegalArgumentException.class, ResponseEntity.badRequest(),
@@ -41,8 +41,11 @@ public class ControllerUtils {
     }
 
     private static ResponseEntity<?> switchExceptionsResponse(Exception e) {
-        return (exceptionalResponseMappings.containsKey(e.getClass()))
-                ? ((ResponseEntity.BodyBuilder) exceptionalResponseMappings.get(e.getClass())).body(e.getMessage())
-            : ResponseEntity.internalServerError().body(ExceptionLogger.ResponseException.fromExceptionObject(e));
+
+        if (exceptionalResponseMappings.containsKey(e.getClass())) {
+            return ResponseEntity.internalServerError().body(ExceptionLogger.ResponseException.fromExceptionObject(e));
+        }
+
+        return ((ResponseEntity.BodyBuilder) exceptionalResponseMappings.get(e.getClass())).body(e.getMessage());
     }
 }
