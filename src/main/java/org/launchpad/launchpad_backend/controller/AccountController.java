@@ -49,8 +49,8 @@ public class AccountController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Account> getAccountById(@PathVariable String id) {
-        return ResponseEntity.ok(accountService.getAccountById(id));
+    public ResponseEntity<?> getAccountById(@PathVariable String id) {
+        return controllerWrapper(() -> accountService.getAccountById(id));
     }
 
     @GetMapping("/search")
@@ -112,8 +112,8 @@ public class AccountController {
 
     @PostMapping("/{identity}/role")
     public ResponseEntity<?> changeRoleOfExistingAccount(@RequestHeader(HttpHeaders.AUTHORIZATION) String authorizationToken,
-                                                      @PathVariable String identity,
-                                                      @RequestBody String newRole) {
+                                                         @PathVariable String identity,
+                                                         @RequestBody String newRole) {
         return securityHandler.roleGuarantee(
                 authorizationToken,
                 () -> accountService.changeRoleOfExistingAccount(identity, newRole),

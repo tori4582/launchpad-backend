@@ -2,8 +2,11 @@ package org.launchpad.launchpad_backend.common;
 
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
+import org.launchpad.launchpad_backend.config.aop.Transformable;
+import org.launchpad.launchpad_backend.model.response.GeneralTransformableResponse;
 import org.springframework.http.ResponseEntity;
 
+import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.function.Supplier;
@@ -23,7 +26,22 @@ public class ControllerUtils {
 
     public static ResponseEntity<?> controllerWrapper(Supplier<?> controllerExecution) {
         try {
-            return ResponseEntity.ok(controllerExecution.get());
+            var controllerBehaviorResult = controllerExecution.get();
+
+            if (controllerBehaviorResult instanceof GeneralTransformableResponse generalTransformableResponse) {
+                return ResponseEntity.ok(generalTransformableResponse.responseData());
+            }
+
+            if (controllerBehaviorResult instanceof List) {
+                return ResponseEntity.ok(
+                        ((List<?>) controllerBehaviorResult).stream()
+                                .map(e -> ((GeneralTransformableResponse) e).responseData())
+                                .toList()
+                );
+            }
+
+            return ResponseEntity.ok(controllerBehaviorResult);
+
         } catch (Exception e) {
             logInvalidAction(e);
             return switchExceptionsResponse(e);

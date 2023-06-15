@@ -8,10 +8,10 @@ import org.springframework.data.rest.core.annotation.RepositoryRestResource;
 import java.util.List;
 import java.util.Optional;
 
-@RepositoryRestResource(collectionResourceRel = "opportunity", path = "opportunities")
 public interface OpportunityRepository extends MongoRepository<Opportunity, String> {
 
-    List<Opportunity> findAll();
-    Optional<Opportunity> findById(@Param("id") String id);
+    List<Opportunity> findAllByJobTitleContainingIgnoreCase(String titleQuery);
+
+    List<Opportunity> findAllByPositionTitleContainingIgnoreCase(String positionQuery);
 
 }

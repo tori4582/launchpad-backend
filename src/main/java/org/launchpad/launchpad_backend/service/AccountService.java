@@ -3,6 +3,8 @@ package org.launchpad.launchpad_backend.service;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.launchpad.launchpad_backend.common.JwtUtils;
+import org.launchpad.launchpad_backend.config.aop.TransformToResponseEntity;
+import org.launchpad.launchpad_backend.config.aop.Transformable;
 import org.launchpad.launchpad_backend.model.Account;
 import org.launchpad.launchpad_backend.model.AccountProviderEnum;
 import org.launchpad.launchpad_backend.model.AccountRoleEnum;
@@ -48,8 +50,9 @@ public class AccountService {
         return accountRepository.findAll();
     }
 
-    public Account getAccountById(String id) {
-        return accountRepository.findById(id).orElse(null);
+    @TransformToResponseEntity
+    public Transformable getAccountById(String id) {
+        return accountRepository.findById(id).orElseThrow();
     }
 
     public Account searchAccountByIdentity(String q) {
