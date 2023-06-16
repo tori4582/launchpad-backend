@@ -2,6 +2,7 @@ package org.launchpad.launchpad_backend.common;
 
 import io.jsonwebtoken.impl.DefaultClaims;
 import lombok.RequiredArgsConstructor;
+import lombok.SneakyThrows;
 import org.apache.logging.log4j.util.Strings;
 import org.launchpad.launchpad_backend.model.AccountRoleEnum;
 import org.launchpad.launchpad_backend.repository.AccountRepository;
@@ -28,31 +29,36 @@ public class SecurityHandler {
             AccountRoleEnum.JOB_SEEKER
     );
 
+    @SneakyThrows
+    public void roleGuaranteeForAop(String authenticationToken,
+                              List<AccountRoleEnum> allowedRoles) {
+        innerChecks(authenticationToken, allowedRoles);
+    }
+
+    @SneakyThrows
+    private void innerChecks(String authenticationToken, List<AccountRoleEnum> allowedRoles) {
+        DefaultClaims claims = JwtUtils.decodeJwtToken(authenticationToken.split(" ")[1]);
+
+        Objects.requireNonNull(claims);
+
+        String[] tokens = claims.getSubject().split("~");
+        AccountRoleEnum requestAccountRole = AccountRoleEnum.valueOf(tokens[1]);
+
+        if(!checkIfAccountIdIsExist(tokens[0]) || !checkIfRoleMatchesWithAccount(tokens[0], AccountRoleEnum.valueOf(tokens[1]))) {
+            throw new IllegalArgumentException("Invalid user information");
+        }
+
+        if (!allowedRoles.contains(requestAccountRole)) {
+            throw new IllegalAccessException("Account has insufficient privileges to perform this action");
+        }
+    }
+
     public ResponseEntity<?> roleGuarantee(String authenticationToken,
                                            Supplier<?> serviceExecutionSupplier,
                                            List<AccountRoleEnum> allowedRoles) {
-        AccountRoleEnum requestAccountRole;
         try {
             if (Strings.isBlank(authenticationToken)) {
                 throw new NullPointerException("Action requires providing of the authentication token");
-            }
-            DefaultClaims claims = JwtUtils.decodeJwtToken(authenticationToken.split(" ")[1]);
-
-            Objects.requireNonNull(claims);
-
-            if (claims.getExpiration().getTime() < System.currentTimeMillis()) {
-                throw new IllegalStateException("Expired jwt token");
-            }
-
-            String[] tokens = claims.getSubject().split("~");
-            requestAccountRole = AccountRoleEnum.valueOf(tokens[1]);
-
-            if(!checkIfAccountIdIsExist(tokens[0]) || !checkIfRoleMatchesWithAccount(tokens[0], AccountRoleEnum.valueOf(tokens[1]))) {
-                throw new IllegalArgumentException("Invalid user information");
-            }
-
-            if (!allowedRoles.contains(requestAccountRole)) {
-                throw new IllegalAccessException("Account has insufficient privileges to perform this action");
             }
         } catch (Exception e) {
             logInvalidAction(e);

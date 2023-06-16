@@ -31,8 +31,7 @@ public class AccountService {
     public AccountService(@Value("${server.endpoint}") String resetPasswordEndpoint,
                           @Autowired AccountRepository accountRepositoryy,
                           @Autowired MailService mailService,
-                          @Autowired SimpleInternalCredentialService simpleInternalCredentialService
-                       ) {
+                          @Autowired SimpleInternalCredentialService simpleInternalCredentialService) {
         this.accountRepository = accountRepositoryy;
         this.mailService = mailService;
         this.simpleInternalCredentialService = simpleInternalCredentialService;

@@ -54,4 +54,8 @@ public class OpportunityService {
         opportunityRepository.deleteAll();
         return result;
     }
+
+    public Object updateExistingOpportunity(String id, Opportunity opportunity) {
+        return null;
+    }
 }

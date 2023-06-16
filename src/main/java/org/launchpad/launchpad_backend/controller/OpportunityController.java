@@ -3,6 +3,7 @@ package org.launchpad.launchpad_backend.controller;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.launchpad.launchpad_backend.common.SecurityHandler;
+import org.launchpad.launchpad_backend.config.aop.AllowedRoles;
 import org.launchpad.launchpad_backend.model.AccountRoleEnum;
 import org.launchpad.launchpad_backend.model.Opportunity;
 import org.launchpad.launchpad_backend.service.OpportunityService;
@@ -13,15 +14,15 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 import static org.launchpad.launchpad_backend.common.ControllerUtils.controllerWrapper;
+import static org.launchpad.launchpad_backend.model.AccountRoleEnum.TALENT_ACQUISITION;
 
 @RestController
-@RequestMapping("/accounts")
+@RequestMapping("/opportunities")
 @RequiredArgsConstructor
 @Validated
 public class OpportunityController {
 
     private final OpportunityService opportunityService;
-    private final SecurityHandler securityHandler;
 
     // READ operations
     @GetMapping
@@ -43,30 +44,30 @@ public class OpportunityController {
 
     // CREATE operations
 
-    @PostMapping
+    @AllowedRoles({TALENT_ACQUISITION})
     public ResponseEntity<?> createNewOpportunity(@RequestHeader String authorizationToken,
-                                                  @RequestBody @Valid Opportunity opportunity) {
-        return securityHandler.roleGuarantee(
-                authorizationToken,
-                () -> opportunityService.createNewOpportunity(opportunity),
-                List.of(AccountRoleEnum.TALENT_ACQUISITION)
-        );
+                                                  @RequestBody @Valid Opportunity opportunity) throws Throwable {
+        return controllerWrapper(() -> opportunityService.createNewOpportunity(opportunity));
     }
 
     // MODIFY operations
+    @PostMapping("/{id}")
+    @AllowedRoles({TALENT_ACQUISITION})
+    public ResponseEntity<?> updateExistingOpportunity(@RequestHeader String authorizationToken,
+                                                       @PathVariable String id,
+                                                       @RequestBody @Valid Opportunity opportunity) throws Throwable {
+        return controllerWrapper(() -> opportunityService.updateExistingOpportunity(id, opportunity));
+    }
 
     // DELETE operations
     @DeleteMapping("/{id}")
+    @AllowedRoles({TALENT_ACQUISITION})
     public ResponseEntity<?> deleteOpportunityById(@RequestHeader String authorizationToken,
-                                                   @PathVariable String id) {
-        return securityHandler.roleGuarantee(
-                authorizationToken,
-                () -> opportunityService.deleteOpportunityById(id),
-                List.of(AccountRoleEnum.TALENT_ACQUISITION)
-        );
+                                                   @PathVariable String id) throws Throwable {
+        return controllerWrapper(() -> opportunityService.deleteOpportunityById(id));
     }
 
-    @DeleteMapping
+    @DeleteMapping("/dev/all")
     public ResponseEntity<?> deleteAllOpportunities() {
         return controllerWrapper(opportunityService::deleteAllOpportunities);
     }

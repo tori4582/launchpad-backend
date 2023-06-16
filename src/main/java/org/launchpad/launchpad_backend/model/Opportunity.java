@@ -1,8 +1,6 @@
 package org.launchpad.launchpad_backend.model;
 
-import jakarta.validation.constraints.Min;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.*;
 import lombok.Builder;
 import lombok.Data;
 import org.launchpad.launchpad_backend.config.aop.Transformable;
@@ -26,9 +24,11 @@ public class Opportunity implements Transformable {
     private String positionTitle;
 
     @NotNull
+    @PositiveOrZero
     private Integer salaryRangeX;
 
     @NotNull
+    @Positive
     private Integer salaryRangeY;
 
     @NotBlank

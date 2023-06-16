@@ -32,9 +32,9 @@ public class ControllerUtils {
                 return ResponseEntity.ok(generalTransformableResponse.responseData());
             }
 
-            if (controllerBehaviorResult instanceof List) {
-                return ResponseEntity.ok(
-                        ((List<?>) controllerBehaviorResult).stream()
+            if (controllerBehaviorResult instanceof List list
+                    && (!list.isEmpty() && list.get(0) instanceof GeneralTransformableResponse)) {
+                return ResponseEntity.ok(list.stream()
                                 .map(e -> ((GeneralTransformableResponse) e).responseData())
                                 .toList()
                 );

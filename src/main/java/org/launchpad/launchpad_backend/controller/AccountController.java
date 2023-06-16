@@ -2,7 +2,9 @@ package org.launchpad.launchpad_backend.controller;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.SneakyThrows;
 import org.launchpad.launchpad_backend.common.SecurityHandler;
+import org.launchpad.launchpad_backend.config.aop.AllowedRoles;
 import org.launchpad.launchpad_backend.model.Account;
 import org.launchpad.launchpad_backend.model.request.AuthenticationRequestEntity;
 import org.launchpad.launchpad_backend.service.AccountService;
@@ -15,7 +17,7 @@ import java.util.List;
 
 import static org.launchpad.launchpad_backend.common.ControllerUtils.controllerWrapper;
 import static org.launchpad.launchpad_backend.common.SecurityHandler.ALLOW_STAKEHOLDERS;
-import static org.launchpad.launchpad_backend.model.AccountRoleEnum.ADMIN;
+import static org.launchpad.launchpad_backend.model.AccountRoleEnum.*;
 
 @RestController
 @RequestMapping("/accounts")
@@ -40,12 +42,9 @@ public class AccountController {
     }
 
     @GetMapping
-    public ResponseEntity<?> getAllAccounts(@RequestHeader(HttpHeaders.AUTHORIZATION) String authorizationToken) {
-        return securityHandler.roleGuarantee(
-                authorizationToken,
-                accountService::getAllAccounts,
-                List.of(ADMIN)
-        );
+    @AllowedRoles({ADMIN})
+    public ResponseEntity<?> getAllAccounts() throws Throwable {
+        return controllerWrapper(accountService::getAllAccounts);
     }
 
     @GetMapping("/{id}")
@@ -89,8 +88,8 @@ public class AccountController {
 
     @PostMapping("/{identity}")
     public ResponseEntity<?> updateExistingAccount(@RequestHeader(HttpHeaders.AUTHORIZATION) String authorizationToken,
-                                                    @PathVariable String identity,
-                                                    @RequestBody Account reqEntity) {
+                                                   @PathVariable String identity,
+                                                   @RequestBody Account reqEntity) {
         return securityHandler.roleGuarantee(
                 authorizationToken,
                 () -> accountService.updateExistingAccount(identity, reqEntity),
@@ -99,26 +98,12 @@ public class AccountController {
     }
 
     @PostMapping("/{identity}/{fieldName}")
+    @AllowedRoles({ADMIN, JOB_SEEKER, TALENT_ACQUISITION})
     public ResponseEntity<?> updateFieldValueOfExistingAccount(@RequestHeader(HttpHeaders.AUTHORIZATION) String authorizationToken,
                                                                 @PathVariable String identity,
                                                                 @PathVariable String fieldName,
-                                                                @RequestBody Object newValue) {
-        return securityHandler.roleGuarantee(
-                authorizationToken,
-                () -> accountService.updateFieldValueOfExistingAccount(identity, fieldName, newValue),
-                ALLOW_STAKEHOLDERS
-        );
-    }
-
-    @PostMapping("/{identity}/role")
-    public ResponseEntity<?> changeRoleOfExistingAccount(@RequestHeader(HttpHeaders.AUTHORIZATION) String authorizationToken,
-                                                         @PathVariable String identity,
-                                                         @RequestBody String newRole) {
-        return securityHandler.roleGuarantee(
-                authorizationToken,
-                () -> accountService.changeRoleOfExistingAccount(identity, newRole),
-                List.of(ADMIN)
-        );
+                                                                @RequestBody Object newValue) throws Throwable {
+        return controllerWrapper(() -> accountService.updateFieldValueOfExistingAccount(identity, fieldName, newValue));
     }
 
     @PostMapping("/reset-pass")
@@ -151,7 +136,8 @@ public class AccountController {
     // DELETE operation
 
     @DeleteMapping("/dev/all")
-    public ResponseEntity<?> removeAllAccounts(@RequestHeader(HttpHeaders.AUTHORIZATION) String authorizationToken) {
+    @AllowedRoles({ADMIN})
+    public ResponseEntity<?> removeAllAccounts(@RequestHeader(HttpHeaders.AUTHORIZATION) String authorizationToken) throws Throwable {
         return securityHandler.roleGuarantee(
                 authorizationToken,
                 accountService::removeAllAccounts,
@@ -160,13 +146,10 @@ public class AccountController {
     }
 
     @DeleteMapping("/{id}")
+    @AllowedRoles({ADMIN, JOB_SEEKER, TALENT_ACQUISITION})
     public ResponseEntity<?> removeAccountById(@RequestHeader(HttpHeaders.AUTHORIZATION) String authorizationToken,
-                                            @PathVariable String id) {
-        return securityHandler.roleGuarantee(
-                authorizationToken,
-                () -> accountService.removeAccountById(id),
-                ALLOW_STAKEHOLDERS
-        );
+                                               @PathVariable String id) throws Throwable {
+        return controllerWrapper(() -> accountService.removeAccountById(id));
     }
 
 }

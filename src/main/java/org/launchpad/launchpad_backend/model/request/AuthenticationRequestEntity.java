@@ -1,19 +1,20 @@
 package org.launchpad.launchpad_backend.model.request;
 
 import jakarta.validation.constraints.NotBlank;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
-import org.springframework.lang.NonNull;
+import lombok.NoArgsConstructor;
 
 @Data
 @Builder
+@AllArgsConstructor
+@NoArgsConstructor
 public class AuthenticationRequestEntity {
 
-    @NonNull
     @NotBlank
     private String loginIdentity;
 
-    @NonNull
     @NotBlank
     private String hashedPassword;
 }
